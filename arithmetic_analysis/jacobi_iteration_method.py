@@ -4,13 +4,15 @@ Jacobi Iteration Method - https://en.wikipedia.org/wiki/Jacobi_method
 from __future__ import annotations
 
 import numpy as np
+from numpy import float64
+from numpy.typing import NDArray
 
 
 # Method to find solution of system of linear equations
 def jacobi_iteration_method(
-    coefficient_matrix: np.ndarray,
-    constant_matrix: np.ndarray,
-    init_val: list,
+    coefficient_matrix: NDArray[float64],
+    constant_matrix: NDArray[float64],
+    init_val: list[int],
     iterations: int,
 ) -> list[float]:
     """
@@ -40,16 +42,18 @@ def jacobi_iteration_method(
     >>> iterations = 3
     >>> jacobi_iteration_method(coefficient, constant, init_val, iterations)
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Coefficient matrix dimensions must be nxn but received 2x3
 
     >>> coefficient = np.array([[4, 1, 1], [1, 5, 2], [1, 2, 4]])
     >>> constant = np.array([[2], [-6]])
     >>> init_val = [0.5, -0.5, -0.5]
     >>> iterations = 3
-    >>> jacobi_iteration_method(coefficient, constant, init_val, iterations)
+    >>> jacobi_iteration_method(
+    ...     coefficient, constant, init_val, iterations
+    ... )  # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Coefficient and constant matrices dimensions must be nxn and nx1 but
                 received 3x3 and 2x1
 
@@ -57,9 +61,11 @@ def jacobi_iteration_method(
     >>> constant = np.array([[2], [-6], [-4]])
     >>> init_val = [0.5, -0.5]
     >>> iterations = 3
-    >>> jacobi_iteration_method(coefficient, constant, init_val, iterations)
+    >>> jacobi_iteration_method(
+    ...     coefficient, constant, init_val, iterations
+    ... )  # doctest: +NORMALIZE_WHITESPACE
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Number of initial values must be equal to number of rows in coefficient
                 matrix but received 2 and 3
 
@@ -69,7 +75,7 @@ def jacobi_iteration_method(
     >>> iterations = 0
     >>> jacobi_iteration_method(coefficient, constant, init_val, iterations)
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Iterations must be at least 1
     """
 
@@ -77,36 +83,40 @@ def jacobi_iteration_method(
     rows2, cols2 = constant_matrix.shape
 
     if rows1 != cols1:
-        raise ValueError(
-            f"Coefficient matrix dimensions must be nxn but received {rows1}x{cols1}"
-        )
+        msg = f"Coefficient matrix dimensions must be nxn but received {rows1}x{cols1}"
+        raise ValueError(msg)
 
     if cols2 != 1:
-        raise ValueError(f"Constant matrix must be nx1 but received {rows2}x{cols2}")
+        msg = f"Constant matrix must be nx1 but received {rows2}x{cols2}"
+        raise ValueError(msg)
 
     if rows1 != rows2:
-        raise ValueError(
-            f"""Coefficient and constant matrices dimensions must be nxn and nx1 but
-            received {rows1}x{cols1} and {rows2}x{cols2}"""
+        msg = (
+            "Coefficient and constant matrices dimensions must be nxn and nx1 but "
+            f"received {rows1}x{cols1} and {rows2}x{cols2}"
         )
+        raise ValueError(msg)
 
     if len(init_val) != rows1:
-        raise ValueError(
-            f"""Number of initial values must be equal to number of rows in coefficient
-            matrix but received {len(init_val)} and {rows1}"""
+        msg = (
+            "Number of initial values must be equal to number of rows in coefficient "
+            f"matrix but received {len(init_val)} and {rows1}"
         )
+        raise ValueError(msg)
 
     if iterations <= 0:
         raise ValueError("Iterations must be at least 1")
 
-    table = np.concatenate((coefficient_matrix, constant_matrix), axis=1)
+    table: NDArray[float64] = np.concatenate(
+        (coefficient_matrix, constant_matrix), axis=1
+    )
 
     rows, cols = table.shape
 
     strictly_diagonally_dominant(table)
 
     # Iterates the whole matrix for given number of times
-    for i in range(iterations):
+    for _ in range(iterations):
         new_val = []
         for row in range(rows):
             temp = 0
@@ -125,7 +135,7 @@ def jacobi_iteration_method(
 
 
 # Checks if the given matrix is strictly diagonally dominant
-def strictly_diagonally_dominant(table: np.ndarray) -> bool:
+def strictly_diagonally_dominant(table: NDArray[float64]) -> bool:
     """
     >>> table = np.array([[4, 1, 1, 2], [1, 5, 2, -6], [1, 2, 4, -4]])
     >>> strictly_diagonally_dominant(table)
@@ -134,7 +144,7 @@ def strictly_diagonally_dominant(table: np.ndarray) -> bool:
     >>> table = np.array([[4, 1, 1, 2], [1, 5, 2, -6], [1, 2, 3, -4]])
     >>> strictly_diagonally_dominant(table)
     Traceback (most recent call last):
-    ...
+        ...
     ValueError: Coefficient matrix is not strictly diagonally dominant
     """
 
@@ -143,14 +153,14 @@ def strictly_diagonally_dominant(table: np.ndarray) -> bool:
     is_diagonally_dominant = True
 
     for i in range(0, rows):
-        sum = 0
+        total = 0
         for j in range(0, cols - 1):
             if i == j:
                 continue
             else:
-                sum += table[i][j]
+                total += table[i][j]
 
-        if table[i][i] <= sum:
+        if table[i][i] <= total:
             raise ValueError("Coefficient matrix is not strictly diagonally dominant")
 
     return is_diagonally_dominant
